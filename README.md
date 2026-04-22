@@ -17,7 +17,7 @@ The PCB was designed in **KiCad 9.0** and is located in the `ECU_design` folder.
 * **Microcontroller:** NodeMCU ESP8266 (NOT Olimex MOD-WIFI. its just a placeholder in the schematic)
 * **Sensor Input:** GPIO 12 (VR Sensor)
 * **Ignition Output:** GPIO 14 (Coil Trigger)
-* **Power:** 12V to 5V/3.3V regulation.
+* **Power:** 6V
 
 ## Software Setup
 1. Open `ecu_code.ino` in the Arduino IDE.
