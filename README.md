@@ -14,7 +14,7 @@ Great replacement for old points ignition as long as you do the necessary modifi
 
 ## Hardware Design
 The PCB was designed in **KiCad 9.0** and is located in the `ECU_design` folder.
-* **Microcontroller:** ESP8266 (Olimex MOD-WIFI)
+* **Microcontroller:** NodeMCU ESP8266 (NOT Olimex MOD-WIFI. its just a placeholder in the schematic)
 * **Sensor Input:** GPIO 12 (VR Sensor)
 * **Ignition Output:** GPIO 14 (Coil Trigger)
 * **Power:** 12V to 5V/3.3V regulation.
