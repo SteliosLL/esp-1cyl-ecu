@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<title>Tuning Interface</title>
+<style type="text/css">
+/* dark background*/
+body {
+    background-color: #0d0e14; 
+    color: #00ff41; 
+    font-family: "Segoe UI", sans-serif;
+    margin: 20px;
+}
+.auto-style1 {
+	text-align: center;
+	font-size: xx-large;
+	text-shadow: 0 0 10px #00ff41; 
+}
+
+.glowy-green-style {
+    text-align: center;
+    font-size: medium;
+    color: #00ff41;
+    text-shadow: 0 0 10px #00ff41;
+    font-weight: bold;
+}
+
+.glowy-red-style {
+    text-align: center;
+    font-size: medium;
+    color: #ff0000;
+    text-shadow: 0 0 10px #ff0000;
+    font-weight: bold;
+}
+
+fieldset {
+    border: 2px solid #00ff41;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5); 
+    margin-bottom: 20px;
+}
+
+legend {
+    padding: 0 10px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+input[type=text],input[type=number], select {
+    background-color: #111;
+    color: #00ff41;
+    border: 1px solid #00ff41;
+    padding: 5px;
+}
+
+.auto-style2 {
+	text-decoration: underline;
+}
+.auto-style3 {
+	text-align: center;
+}
+
+/* Red Style (Locked State) */
+.auto-style4 {
+    font-size: medium;
+    font-weight: bold;
+    background-color: #ff0000 !important; /* force red */
+    color: white !important;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.auto-style4:hover {
+    background-color: #aa0000 !important;
+}
+
+/* Green Style (Unlocked State) */
+.unlocked-style {
+    background-color: #00ff41 !important; /* force green */
+    color: #000 !important;
+}
+.unlocked-style:hover {
+    background-color: #00cc33 !important;
+}
+input[type=submit], input[type=button] {
+    background-color: #00ff41;
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+/* stuff for mobile */
+@media (max-width: 600px) {
+    body {
+        margin: 10px;
+        font-size: 16px; 
+    }
+
+    fieldset {
+        padding: 15px;
+    }
+
+    input[type=text], select {
+        width: 100%; 
+        box-sizing: border-box; 
+        height: 40px;
+        margin-bottom: 10px;
+    }
+
+    input[type=button], input[type=submit] {
+        width: 100%; 
+        height: 50px; 
+        margin: 5px 0;
+    }
+    
+    #engineBtn {
+        width: 100% !important;
+        height: 60px !important;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<p class="auto-style1">Tuning Interface</p>
+<form method="post">
+	<fieldset name="Group1">
+	<legend>Engine Info</legend>
+	ECU connection: <label id="connectionStatus" class="glowy-red-style"; ><strong>Disconnected</strong></label><br>
+	<br>RPM: <label id="rpmLbl" style="font-weight:bold">0RPM</label><br><br>
+	Ignition Timing: <label id="ignitionTimingLbl" style="font-weight:bold">28deg</label><br><br>
+	Temperature: <label id="tempLbl" style="font-weight:bold">0C</label>
+	</fieldset>
+
+	<fieldset name="Group1">
+	<legend>Manage</legend>
+	<div class="auto-style3">
+		<strong>
+		<input id="engineBtn" class="auto-style4" name="lockEngineBtn" style="height: 46px; width: 134px" type="button" value="Lock Engine" onclick="toggleLock()">
+		<br>
+		</strong></div>
+	</fieldset>
+
+	<fieldset name="Group1">
+	<legend>Tuning Options</legend>
+	Ignition Timing: 
+	<input name="ignitionTimingDegTxtBox" type="number" step="0.5" value="28"> deg<br><br>
+	RPM Limiter: 
+	<input name="rpmLimiterTxtBox" type="number" value="7000"> RPM
+	
+	<strong><span class="auto-style2"><br><br>IDLE adjust:</span></strong>&nbsp; <label> Enable<input name="idleAdjustChckBox" type="checkbox"></label><br>
+	<label id="Label1">Select style: </label>
+	<select name="idleStyleDropDown" style="height: 28px">
+	<option value="1">Harley Vtwin chug</option>
+	<option value="2">Street bike chop</option>
+	<option value="3">Low RPM thumper</option>
+	</select><br><br>
+	
+	<span class="auto-style2"><strong>Launch Control:</strong></span><label>&nbsp; Enable<input name="launchCtrlChckBox" type="checkbox"></label><br>
+	Target RPM: <input name="launchCtrlRPMTxtBox" type="number" value="3000"> RPM<br><br>
+	
+	<input name="saveBtn" type="button" value="Save Changes" onclick="saveSettings()">
+	<input name="discardBtn" type="button" value="Discard" style="background-color:#555; color:white;" onclick="location.reload()">
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<input name="resetbtn" type="button" value="Reset Defaults" style="background-color:#888; color:black;" onclick="resetToDefaults()">
+	</fieldset>
+</form>
+
+<script type="text/javascript">
+const socket = new WebSocket('ws://' + window.location.hostname + ':81/');
+
+const statusLabel = document.getElementById("connectionStatus");
+
+// Handle Connection Established
+socket.onopen = function() {
+    statusLabel.innerText = "Connected";
+    statusLabel.classList.remove("glowy-red-style");
+    statusLabel.classList.add("glowy-green-style");
+    console.log("Link Active");
+};
+
+// Handle Connection Dropped
+socket.onclose = function() {
+    statusLabel.innerText = "Disconnected";
+    statusLabel.classList.remove("glowy-green-style");
+    statusLabel.classList.add("glowy-red-style");
+    console.log("Link Severed");
+    
+    //Attempt to refresh page to reconnect after 5 seconds
+    setTimeout(() => {
+        location.reload();
+    }, 5000);
+};
+socket.onmessage = function(event) {
+    const [rpm, timing, limit] = event.data.split(',');
+
+    const rpmVal = Math.round(parseFloat(rpm));
+    const limitVal = parseInt(limit);
+
+    document.getElementById("rpmLbl").innerText = rpmVal + " RPM";
+    document.getElementById("ignitionTimingLbl").innerText = parseFloat(timing).toFixed(1) + " deg";
+
+    // visual feedback for Rev Limiter
+    const rpmLabel = document.getElementById("rpmLbl");
+    rpmLabel.style.color = (rpmVal >= limitVal) ? "red" : "#00ff41";
+};
+
+socket.onclose = function() {
+    console.log("WebSocket Disconnected (Engine likely running).");
+};
+
+// --- Settings Management ---
+window.onload = function() {
+    fetch('/getSettings')
+    .then(res => res.json())
+    .then(data => {
+        const get = (name) => document.getElementsByName(name)[0];
+        
+        get("ignitionTimingDegTxtBox").value = data.maxAdvance;
+        get("rpmLimiterTxtBox").value = data.rpmLimit;
+        get("launchCtrlChckBox").checked = data.launchControl;
+        get("launchCtrlRPMTxtBox").value = data.launchRPM;
+        get("idleAdjustChckBox").checked = data.launchControl; // Fixed key name
+        get("idleStyleDropDown").value = data.idleStyle;
+        
+        // handle Engine Lock Button State
+        const btn = document.getElementById("engineBtn");
+        if (data.engineLocked) {
+            btn.value = "Unlock Engine";
+            btn.classList.replace("auto-style4", "unlocked-style");
+        }
+    });
+};
+
+function toggleLock() {
+    const btn = document.getElementById("engineBtn");
+    const isLocked = (btn.value === "Unlock Engine"); 
+    const targetAction = isLocked ? "unlockEngine" : "lockEngine";
+
+    fetch('/' + targetAction, { method: 'POST' })
+    .then(res => {
+        if (res.ok) {
+            if (targetAction === "lockEngine") {
+                btn.value = "Unlock Engine";
+                btn.classList.replace("auto-style4", "unlocked-style");
+            } else {
+                btn.value = "Lock Engine";
+                btn.classList.replace("unlocked-style", "auto-style4");
+            }
+        }
+    });
+}
+
+function saveSettings() {
+    if (!confirm("Flash new settings to EEPROM?")) return;
+
+    const get = (name) => document.getElementsByName(name)[0];
+    let params = new URLSearchParams();
+    
+    params.append('ignitionTimingDegTxtBox', get("ignitionTimingDegTxtBox").value);
+    params.append('rpmLimiterTxtBox', get("rpmLimiterTxtBox").value);
+    params.append('launchCtrlChckBox', get("launchCtrlChckBox").checked);
+    params.append('launchCtrlRPMTxtBox', get("launchCtrlRPMTxtBox").value);
+    params.append('idleAdjustChckBox', get("idleAdjustChckBox").checked);
+    params.append('idleStyleDropDown', get("idleStyleDropDown").value);
+
+    fetch('/save', { method: 'POST', body: params })
+    .then(res => res.ok ? alert("Settings Saved!") : alert("Save Failed"));
+}
+
+function resetToDefaults() {
+    if (confirm("Restore factory timing maps?")) {
+        fetch('/resetDefault', { method: 'POST' }).then(() => location.reload());
+    }
+}
+</script>
+</body>
+</html>
