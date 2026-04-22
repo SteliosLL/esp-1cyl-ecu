@@ -3,7 +3,7 @@
 A DIY Electronic Control Unit (ECU) for single-cylinder engines using the ESP8266. 
 Great replacement for old points ignition as long as you do the necessary modifications to the flywheel. 
 
-**NOTE:** Currently only supports points ignition.
+**NOTE:** Currently only supports points ignition. (Honda C50 style)
 
 ## Features
 * **Wireless Tuning:** Access point `Moto_Tuning_Port` (Password: `1234`).
